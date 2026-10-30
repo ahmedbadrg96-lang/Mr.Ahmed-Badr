@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>متابعة المجموعات</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2F6F5E" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" href="icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EEE6; --card:#FFFFFF; --ink:#20291F; --muted:#6E7268; --border:#E1DCCE;
+    --accent:#2F6F5E; --accent-soft:#E3EFE9; --gold:#B8863C; --gold-soft:#F5EBDA;
+    --danger:#AA3D3D; --danger-soft:#F6E4E2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Cairo',sans-serif;}
+  body{padding-bottom:100px;min-height:100vh;}
+  button,input{font-family:inherit;}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 10px;}
+  header.top .title{font-size:19px;font-weight:700;}
+  .icon-btn{border:none;background:transparent;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;}
+  .back-btn{width:30px;height:30px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .tabs{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;}
+  .tab-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .tab-btn.active{background:var(--accent);color:#fff;border:1px solid var(--accent);}
+  .body{padding:4px 14px 20px;}
+  .group-card{text-align:right;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;cursor:pointer;width:100%;margin-bottom:10px;}
+  .group-card-top{display:flex;align-items:center;justify-content:space-between;}
+  .group-name{font-size:16px;font-weight:700;}
+  .group-count{font-size:13px;color:var(--muted);}
+  .mode-badge{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;}
+  .mode-online{background:var(--gold-soft);color:var(--gold);}
+  .mode-in_person{background:var(--accent-soft);color:var(--accent);}
+  .list{display:flex;flex-direction:column;gap:8px;}
+  .row, .row-btn{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;width:100%;text-align:right;cursor:pointer;border-style:solid;}
+  .row{cursor:default;}
+  .row-col{display:flex;flex-direction:column;gap:2px;align-items:flex-start;}
+  .row-title{font-size:14px;font-weight:700;}
+  .row-sub{font-size:12px;color:var(--muted);}
+  .row-meta{font-size:12px;color:var(--accent);font-weight:700;}
+  .sub-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .back-link{display:flex;align-items:center;gap:4px;border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;padding:4px;}
+  .sub-title-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding:0 2px;}
+  .sub-title{font-size:16px;font-weight:700;}
+  .sub-date{font-size:12px;color:var(--muted);}
+  .att-row,.grade-row,.pay-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;gap:8px;}
+  .att-toggles{display:flex;gap:6px;flex-shrink:0;}
+  .toggle{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:6px 10px;border-radius:10px;border:1px solid var(--border);cursor:pointer;background:var(--card);color:var(--muted);}
+  .toggle.on-present{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
+  .toggle.on-hw{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold);}
+  .grade-input,.pay-input{width:64px;text-align:center;font-size:14px;padding:7px 6px;border-radius:8px;border:1px solid var(--border);}
+  .month-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;}
+  .month-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:16px;cursor:pointer;}
+  .month-label{font-size:15px;font-weight:700;min-width:110px;text-align:center;}
+  .pay-controls{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .pay-toggle{font-size:12px;font-weight:700;padding:7px 10px;border-radius:10px;border:none;cursor:pointer;}
+  .pay-toggle.on{background:var(--accent-soft);color:var(--accent);}
+  .pay-toggle.off{background:var(--danger-soft);color:var(--danger);}
+  .empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px 20px;gap:8px;}
+  .empty-icon{width:52px;height:52px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:22px;}
+  .empty-title{font-size:15px;font-weight:700;}
+  .empty-sub{font-size:13px;color:var(--muted);max-width:240px;}
+  .fab{position:fixed;bottom:24px;left:20px;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(47,111,94,0.35);color:#fff;font-size:26px;}
+  .overlay{position:fixed;inset:0;background:rgba(32,41,31,0.45);display:flex;align-items:flex-end;justify-content:center;z-index:50;}
+  .modal-card{background:var(--bg);width:100%;max-width:420px;border-radius:18px 18px 0 0;padding:16px 18px 26px;display:flex;flex-direction:column;gap:12px;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-size:16px;font-weight:700;}
+  .form-col{display:flex;flex-direction:column;gap:10px;}
+  input[type=text],input[type=number],input[type=date]{font-size:14px;padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--ink);width:100%;}
+  .mode-row{display:flex;gap:8px;}
+  .mode-choice{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;}
+  .mode-choice.on{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
+  .primary-btn{font-size:14px;font-weight:700;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;margin-top:4px;width:100%;}
+  .err{font-size:12px;color:var(--danger);}
+  .trash{color:var(--danger);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const STORAGE_KEY = "groups-tracker-data";
+const uid = () => Math.random().toString(36).slice(2, 10);
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const monthKey = (d) => d.slice(0, 7);
+const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const EMPTY = { groups: [], students: [], sessions: [], attendance: {}, tests: [], grades: {}, payments: {} };
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return {...EMPTY, ...JSON.parse(raw)};
+  }catch(e){}
+  return {...EMPTY};
+}
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); }catch(e){}
+}
+
+const state = {
+  data: loadData(),
+  activeGroupId: null,
+  tab: "students",
+  activeSessionId: null,
+  activeTestId: null,
+  payMonth: monthKey(todayISO()),
+  modal: null,
+  err: "",
+};
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function render(){
+  const root = document.getElementById("app");
+  const g = state.data.groups.find(x => x.id === state.activeGroupId) || null;
+  root.innerHTML = g ? renderGroup(g) : renderHome();
+  attachHandlers();
+}
+
+function renderHome(){
+  const groups = state.data.groups;
+  let body = "";
+  if(groups.length === 0){
+    body = emptyState("👥","ابدأ بإضافة مجموعة","كل مجموعة تضم طلابها وحضورهم واختباراتهم ودفعاتهم في مكان واحد");
+  } else {
+    body = groups.map(gr => {
+      const count = state.data.students.filter(s=>s.groupId===gr.id).length;
+      const modeLabel = gr.mode === "online" ? "اونلاين" : "حضوري";
+      return `<button class="group-card" data-open-group="${gr.id}">
+        <div class="group-card-top">
+          <span class="group-name">${esc(gr.name)}</span>
+          <span class="mode-badge mode-${gr.mode}">${modeLabel}</span>
+        </div>
+        <span class="group-count">${count} طالب</span>
+      </button>`;
+    }).join("");
+  }
+  return `
+    <header class="top"><div style="width:30px"></div><span class="title">مجموعاتي</span><div style="width:30px"></div></header>
+    <div class="body">${body}</div>
+    <button class="fab" data-open-modal="addGroup">+</button>
+    ${state.modal?.type==="addGroup" ? modalAddGroup() : ""}
+  `;
+}
+
+function renderGroup(g){
+  const students = state.data.students.filter(s=>s.groupId===g.id);
+  const sessions = state.data.sessions.filter(s=>s.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const tests = state.data.tests.filter(t=>t.groupId===g.id);
+
+  const tabsHtml = `
+    <div class="tabs">
+      <button class="tab-btn ${state.tab==='students'?'active':''}" data-tab="students">الطلاب</button>
+      <button class="tab-btn ${state.tab==='attendance'?'active':''}" data-tab="attendance">الحضور</button>
+      <button class="tab-btn ${state.tab==='tests'?'active':''}" data-tab="tests">الاختبارات</button>
+      <button class="tab-btn ${state.tab==='payments'?'active':''}" data-tab="payments">الدفع</button>
+    </div>`;
+
+  let content = "";
+  let fab = "";
+
+  if(state.tab === "students"){
+    content = students.length===0 ? emptyState("👤","لا يوجد طلاب بعد","أضف أول طالب في هذه المجموعة") :
+      `<div class="list">${students.map(s=>`
+        <div class="row">
+          <span class="row-title">${esc(s.name)}</span>
+          <button class="icon-btn trash" data-del-student="${s.id}">🗑</button>
+        </div>`).join("")}</div>`;
+    fab = `<button class="fab" data-open-modal="addStudent">+</button>`;
+  }
+
+  if(state.tab === "attendance"){
+    const session = sessions.find(s=>s.id===state.activeSessionId);
+    if(session){
+      const att = state.data.attendance[session.id] || {};
+      content = `
+        <div class="sub-header">
+          <button class="back-link" data-back-session>‹ رجوع للجلسات</button>
+          <button class="icon-btn trash" data-del-session="${session.id}">🗑</button>
+        </div>
+        <div class="sub-title-row"><span class="sub-title">${esc(session.label)}</span><span class="sub-date">${session.date}</span></div>
+        <div class="list">
+        ${students.length===0 ? emptyState("👤","لا يوجد طلاب في هذه المجموعة") : students.map(s=>{
+          const a = att[s.id] || {present:false, homework:false};
+          return `<div class="att-row">
+            <span class="row-title">${esc(s.name)}</span>
+            <div class="att-toggles">
+              <button class="toggle ${a.present?'on-present':''}" data-att-toggle="${session.id}|${s.id}|present">${a.present?'✓ ':''}حاضر</button>
+              <button class="toggle ${a.homework?'on-hw':''}" data-att-toggle="${session.id}|${s.id}|homework">${a.homework?'✓ ':''}الواجب</button>
+            </div>
+          </div>`;
+        }).join("")}
+        </div>`;
+    } else {
+      content = sessions.length===0 ? emptyState("📅","لا توجد جلسات بعد","أضف جلسة لتسجيل الحضور والواجب") :
+        `<div class="list">${sessions.map(s=>{
+          const att = state.data.attendance[s.id] || {};
+          const presentCount = Object.values(att).filter(a=>a.present).length;
+          return `<button class="row-btn" data-open-session="${s.id}">
+            <div class="row-col"><span class="row-title">${esc(s.label)}</span><span class="row-sub">${s.date}</span></div>
+            <span class="row-meta">${presentCount}/${students.length} حضور</span>
+          </button>`;
+        }).join("")}</div>`;
+      fab = `<button class="fab" data-open-modal="addSession">+</button>`;
+    }
+  }
+
+  if(state.tab === "tests"){
+    const test = tests.find(t=>t.id===state.activeTestId);
+    if(test){
+      const grades = state.data.grades[test.id] || {};
+      content = `
+        <div class="sub-header">
+          <button class="back-link" data-back-test>‹ رجوع للاختبارات</button>
+          <button class="icon-btn trash" data-del-test="${test.id}">🗑</button>
+        </div>
+        <div class="sub-title-row"><span class="sub-title">${esc(test.name)}</span><span class="sub-date">من ${test.maxScore}</span></div>
+        <div class="list">
+        ${students.length===0 ? emptyState("👤","لا يوجد طلاب في هذه المجموعة") : students.map(s=>`
+          <div class="grade-row">
+            <span class="row-title">${esc(s.name)}</span>
+            <input type="number" inputmode="decimal" class="grade-input" placeholder="-" value="${grades[s.id] ?? ''}" data-grade="${test.id}|${s.id}">
+          </div>`).join("")}
+        </div>`;
+    } else {
+      content = tests.length===0 ? emptyState("📋","لا توجد اختبارات بعد","أضف اختبارًا لتسجيل الدرجات") :
+        `<div class="list">${tests.map(t=>{
+          const gr = state.data.grades[t.id] || {};
+          return `<button class="row-btn" data-open-test="${t.id}">
+            <div class="row-col"><span class="row-title">${esc(t.name)}</span><span class="row-sub">من ${t.maxScore}</span></div>
+            <span class="row-meta">${Object.keys(gr).length}/${students.length} مصحح</span>
+          </button>`;
+        }).join("")}</div>`;
+      fab = `<button class="fab" data-open-modal="addTest">+</button>`;
+    }
+  }
+
+  if(state.tab === "payments"){
+    const [y,m] = state.payMonth.split("-").map(Number);
+    content = `
+      <div class="month-nav">
+        <button class="month-btn" data-shift-month="-1">‹</button>
+        <span class="month-label">${MONTHS_AR[m-1]} ${y}</span>
+        <button class="month-btn" data-shift-month="1">›</button>
+      </div>
+      ${students.length===0 ? emptyState("💰","لا يوجد طلاب في هذه المجموعة") :
+      `<div class="list">${students.map(s=>{
+        const rec = (state.data.payments[s.id]||{})[state.payMonth] || {paid:false, amount:""};
+        return `<div class="pay-row">
+          <span class="row-title">${esc(s.name)}</span>
+          <div class="pay-controls">
+            <input type="number" inputmode="decimal" class="pay-input" placeholder="المبلغ" value="${rec.amount}" data-pay-amount="${s.id}">
+            <button class="pay-toggle ${rec.paid?'on':'off'}" data-pay-toggle="${s.id}">${rec.paid?'مدفوع':'غير مدفوع'}</button>
+          </div>
+        </div>`;
+      }).join("")}</div>`}
+    `;
+  }
+
+  return `
+    <header class="top">
+      <button class="back-btn" data-go-home>→</button>
+      <span class="title">${esc(g.name)}</span>
+      <button class="icon-btn trash" data-del-group="${g.id}">🗑</button>
+    </header>
+    ${tabsHtml}
+    <div class="body">${content}</div>
+    ${fab}
+    ${state.modal?.type==="addStudent" ? modalSimple("طالب جديد","اسم الطالب","إضافة","addStudent") : ""}
+    ${state.modal?.type==="addSession" ? modalSession() : ""}
+    ${state.modal?.type==="addTest" ? modalTest() : ""}
+  `;
+}
+
+function emptyState(icon,title,sub){
+  return `<div class="empty"><div class="empty-icon">${icon}</div><span class="empty-title">${title}</span>${sub?`<span class="empty-sub">${sub}</span>`:""}</div>`;
+}
+
+function modalAddGroup(){
+  return `<div class="overlay" data-close-modal>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header"><span class="modal-title">مجموعة جديدة</span><button class="icon-btn" data-close-modal>✕</button></div>
+      <div class="form-col">
+        <input type="text" id="f-name" placeholder="اسم المجموعة" autofocus>
+        <div class="mode-row">
+          <button class="mode-choice on" id="mode-in_person" data-set-mode="in_person">📍 حضوري</button>
+          <button class="mode-choice" id="mode-online" data-set-mode="online">📶 اونلاين</button>
+        </div>
+        ${state.err?`<span class="err">${state.err}</span>`:""}
+        <button class="primary-btn" data-submit-group>إضافة المجموعة</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function modalSimple(title, placeholder, btnLabel, action){
+  return `<div class="overlay" data-close-modal>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header"><span class="modal-title">${title}</span><button class="icon-btn" data-close-modal>✕</button></div>
+      <div class="form-col">
+        <input type="text" id="f-simple" placeholder="${placeholder}" autofocus>
+        ${state.err?`<span class="err">${state.err}</span>`:""}
+        <button class="primary-btn" data-submit-simple="${action}">${btnLabel}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function modalSession(){
+  return `<div class="overlay" data-close-modal>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header"><span class="modal-title">جلسة جديدة</span><button class="icon-btn" data-close-modal>✕</button></div>
+      <div class="form-col">
+        <input type="date" id="f-date" value="${todayISO()}">
+        <input type="text" id="f-label" placeholder="عنوان الجلسة (اختياري)">
+        <button class="primary-btn" data-submit-session>إضافة الجلسة</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function modalTest(){
+  return `<div class="overlay" data-close-modal>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header"><span class="modal-title">اختبار جديد</span><button class="icon-btn" data-close-modal>✕</button></div>
+      <div class="form-col">
+        <input type="text" id="f-tname" placeholder="اسم الاختبار" autofocus>
+        <input type="number" id="f-tmax" placeholder="الدرجة القصوى" value="100">
+        ${state.err?`<span class="err">${state.err}</span>`:""}
+        <button class="primary-btn" data-submit-test>إضافة الاختبار</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+let selectedMode = "in_person";
+
+function attachHandlers(){
+  const root = document.getElementById("app");
+
+  root.querySelectorAll("[data-open-group]").forEach(el=>el.onclick=()=>{
+    state.activeGroupId = el.dataset.openGroup; state.tab="students"; render();
+  });
+  root.querySelectorAll("[data-go-home]").forEach(el=>el.onclick=()=>{
+    state.activeGroupId=null; render();
+  });
+  root.querySelectorAll("[data-del-group]").forEach(el=>el.onclick=()=>{
+    if(confirm("حذف المجموعة وكل بياناتها؟")) deleteGroup(el.dataset.delGroup);
+  });
+  root.querySelectorAll("[data-tab]").forEach(el=>el.onclick=()=>{
+    state.tab = el.dataset.tab; state.activeSessionId=null; state.activeTestId=null; render();
+  });
+  root.querySelectorAll("[data-open-modal]").forEach(el=>el.onclick=()=>{
+    state.err=""; selectedMode="in_person"; state.modal={type:el.dataset.openModal}; render();
+  });
+  root.querySelectorAll("[data-close-modal]").forEach(el=>el.onclick=(e)=>{
+    if(e.target===el){ state.modal=null; render(); }
+  });
+  const closeBtns = root.querySelectorAll(".modal-header [data-close-modal]");
+  closeBtns.forEach(el=>el.onclick=()=>{ state.modal=null; render(); });
+
+  root.querySelectorAll("[data-set-mode]").forEach(el=>el.onclick=()=>{
+    selectedMode = el.dataset.setMode;
+    root.querySelectorAll("[data-set-mode]").forEach(b=>b.classList.remove("on"));
+    el.classList.add("on");
+  });
+  const submitGroup = root.querySelector("[data-submit-group]");
+  if(submitGroup) submitGroup.onclick=()=>{
+    const name = document.getElementById("f-name").value.trim();
+    if(!name){ state.err="اكتب اسم المجموعة"; render(); return; }
+    state.data.groups.push({id:uid(), name, mode:selectedMode});
+    saveData(); state.modal=null; render();
+  };
+
+  root.querySelectorAll("[data-del-student]").forEach(el=>el.onclick=()=>{
+    if(confirm("حذف الطالب؟")) deleteStudent(el.dataset.delStudent);
+  });
+  const submitSimple = root.querySelector("[data-submit-simple]");
+  if(submitSimple) submitSimple.onclick=()=>{
+    const val = document.getElementById("f-simple").value.trim();
+    if(!val){ state.err="اكتب اسم الطالب"; render(); return; }
+    const g = state.data.groups.find(x=>x.id===state.activeGroupId);
+    state.data.students.push({id:uid(), groupId:g.id, name:val});
+    saveData(); state.modal=null; render();
+  };
+
+  root.querySelectorAll("[data-open-session]").forEach(el=>el.onclick=()=>{
+    state.activeSessionId = el.dataset.openSession; render();
+  });
+  const backSession = root.querySelector("[data-back-session]");
+  if(backSession) backSession.onclick=()=>{ state.activeSessionId=null; render(); };
+  root.querySelectorAll("[data-del-session]").forEach(el=>el.onclick=()=>{
+    if(confirm("حذف الجلسة؟")) deleteSession(el.dataset.delSession);
+  });
+  const submitSession = root.querySelector("[data-submit-session]");
+  if(submitSession) submitSession.onclick=()=>{
+    const date = document.getElementById("f-date").value || todayISO();
+    const label = document.getElementById("f-label").value.trim() || "جلسة";
+    const g = state.data.groups.find(x=>x.id===state.activeGroupId);
+    const s = {id:uid(), groupId:g.id, date, label};
+    state.data.sessions.push(s);
+    saveData(); state.modal=null; state.activeSessionId=s.id; render();
+  };
+  root.querySelectorAll("[data-att-toggle]").forEach(el=>el.onclick=()=>{
+    const [sessionId, studentId, field] = el.dataset.attToggle.split("|");
+    toggleAttendance(sessionId, studentId, field);
+  });
+
+  root.querySelectorAll("[data-open-test]").forEach(el=>el.onclick=()=>{
+    state.activeTestId = el.dataset.openTest; render();
+  });
+  const backTest = root.querySelector("[data-back-test]");
+  if(backTest) backTest.onclick=()=>{ state.activeTestId=null; render(); };
+  root.querySelectorAll("[data-del-test]").forEach(el=>el.onclick=()=>{
+    if(confirm("حذف الاختبار؟")) deleteTest(el.dataset.delTest);
+  });
+  const submitTest = root.querySelector("[data-submit-test]");
+  if(submitTest) submitTest.onclick=()=>{
+    const name = document.getElementById("f-tname").value.trim();
+    const max = Number(document.getElementById("f-tmax").value) || 100;
+    if(!name){ state.err="اكتب اسم الاختبار"; render(); return; }
+    const g = state.data.groups.find(x=>x.id===state.activeGroupId);
+    const t = {id:uid(), groupId:g.id, name, maxScore:max};
+    state.data.tests.push(t);
+    saveData(); state.modal=null; state.activeTestId=t.id; render();
+  };
+  root.querySelectorAll("[data-grade]").forEach(el=>{
+    el.onchange=()=>{
+      const [testId, studentId] = el.dataset.grade.split("|");
+      state.data.grades[testId] = state.data.grades[testId] || {};
+      state.data.grades[testId][studentId] = el.value;
+      saveData();
+    };
+  });
+
+  root.querySelectorAll("[data-shift-month]").forEach(el=>el.onclick=()=>{
+    const delta = Number(el.dataset.shiftMonth);
+    const [y,m] = state.payMonth.split("-").map(Number);
+    const d = new Date(y, m-1+delta, 1);
+    state.payMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    render();
+  });
+  root.querySelectorAll("[data-pay-amount]").forEach(el=>{
+    el.onchange=()=>{
+      const studentId = el.dataset.payAmount;
+      setPayment(studentId, "amount", el.value);
+    };
+  });
+  root.querySelectorAll("[data-pay-toggle]").forEach(el=>el.onclick=()=>{
+    const studentId = el.dataset.payToggle;
+    const current = (state.data.payments[studentId]||{})[state.payMonth] || {paid:false, amount:""};
+    setPayment(studentId, "paid", !current.paid);
+  });
+}
+
+function deleteGroup(id){
+  const studentIds = state.data.students.filter(s=>s.groupId===id).map(s=>s.id);
+  const sessionIds = state.data.sessions.filter(s=>s.groupId===id).map(s=>s.id);
+  const testIds = state.data.tests.filter(t=>t.groupId===id).map(t=>t.id);
+  sessionIds.forEach(sid=>delete state.data.attendance[sid]);
+  testIds.forEach(tid=>delete state.data.grades[tid]);
+  studentIds.forEach(stid=>delete state.data.payments[stid]);
+  state.data.groups = state.data.groups.filter(g=>g.id!==id);
+  state.data.students = state.data.students.filter(s=>s.groupId!==id);
+  state.data.sessions = state.data.sessions.filter(s=>s.groupId!==id);
+  state.data.tests = state.data.tests.filter(t=>t.groupId!==id);
+  saveData(); state.activeGroupId=null; render();
+}
+function deleteStudent(id){
+  Object.keys(state.data.attendance).forEach(sid=>{ delete state.data.attendance[sid][id]; });
+  Object.keys(state.data.grades).forEach(tid=>{ delete state.data.grades[tid][id]; });
+  delete state.data.payments[id];
+  state.data.students = state.data.students.filter(s=>s.id!==id);
+  saveData(); render();
+}
+function deleteSession(id){
+  delete state.data.attendance[id];
+  state.data.sessions = state.data.sessions.filter(s=>s.id!==id);
+  if(state.activeSessionId===id) state.activeSessionId=null;
+  saveData(); render();
+}
+function deleteTest(id){
+  delete state.data.grades[id];
+  state.data.tests = state.data.tests.filter(t=>t.id!==id);
+  if(state.activeTestId===id) state.activeTestId=null;
+  saveData(); render();
+}
+function toggleAttendance(sessionId, studentId, field){
+  state.data.attendance[sessionId] = state.data.attendance[sessionId] || {};
+  const current = state.data.attendance[sessionId][studentId] || {present:false, homework:false};
+  current[field] = !current[field];
+  state.data.attendance[sessionId][studentId] = current;
+  saveData(); render();
+}
+function setPayment(studentId, field, value){
+  state.data.payments[studentId] = state.data.payments[studentId] || {};
+  const current = state.data.payments[studentId][state.payMonth] || {paid:false, amount:""};
+  current[field] = value;
+  state.data.payments[studentId][state.payMonth] = current;
+  saveData(); render();
+}
+
+render();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
